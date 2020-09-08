@@ -1,5 +1,5 @@
 name: 'Islandora Carapace Defaults Demo'
-description: 'Settings to setup a demo based off carapace''s new features'
+description: 'Settings to setup a demo based off new features in Carapace'
 type: module
 core: 8.x
 dependencies:
