@@ -1,0 +1,55 @@
+langcode: en
+status: true
+dependencies:
+  enforced:
+    module:
+      - islandora_defaults
+  module:
+    - islandora
+    - term_condition
+name: collection
+label: Collection
+group: Display
+description: 'Display block of children'
+requireAllConditions: true
+disabled: false
+conditions:
+  node_has_term:
+    id: node_has_term
+    negate: 0
+    context_mapping:
+      node: '@node.node_route_context:node'
+    uri: 'http://purl.org/dc/dcmitype/Collection'
+    logic: and
+  term:
+    id: term
+    tid:
+      -
+        target_id: '146'
+    negate: 1
+    uuid: c525b17a-816e-49c4-9971-f59db957af46
+    context_mapping:
+      node: '@node.node_route_context:node'
+reactions:
+  blocks:
+    blocks:
+      a79536b1-18f5-418c-8ade-adc9a03e9b84:
+        id: 'views_block:solr_search_content-block_1'
+        label: ''
+        provider: views
+        label_display: visible
+        views_label: ''
+        items_per_page: none
+        region: content_suffix
+        weight: '0'
+        context_mapping: {  }
+        theme: carapace
+        css_class: ''
+        unique: 0
+        context_id: collection
+        uuid: a79536b1-18f5-418c-8ade-adc9a03e9b84
+    id: blocks
+    saved: false
+    uuid: 05fa2bd4-2a8b-4a21-aac9-06096f1f26e9
+    include_default_blocks: 1
+weight: 1

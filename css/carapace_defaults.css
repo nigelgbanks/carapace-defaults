@@ -1,0 +1,21 @@
+
+
+.views-col {
+  cursor: pointer;
+}
+
+.views-col :hover {
+  background-color: #eeeeee;
+}
+
+.js-view-collection--ajax {
+  background-color: #eeeeee;
+}
+
+.ajax-process {
+  display: none;
+}
+
+.sort__container label {
+  display: none;
+}

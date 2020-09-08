@@ -1,0 +1,36 @@
+langcode: en
+status: true
+dependencies:
+  module:
+    - islandora
+    - term_condition
+name: compound_object
+label: 'Compound Object'
+group: Display
+description: ''
+requireAllConditions: true
+disabled: false
+conditions:
+  term:
+    id: term
+    tid:
+      -
+        target_id: '146'
+    negate: 0
+    uuid: 4605e706-3953-4e75-b525-b9570e21112c
+    context_mapping:
+      node: '@node.node_route_context:node'
+  node_has_term:
+    id: node_has_term
+    logic: and
+    negate: 0
+    uuid: feadcc23-eb0d-489b-bae9-5a3efcb4a9e1
+    uri: 'http://purl.org/dc/dcmitype/Collection'
+    context_mapping:
+      node: '@node.node_route_context:node'
+reactions:
+  view_mode_alter:
+    id: view_mode_alter
+    mode: node.compound
+    saved: false
+weight: 0

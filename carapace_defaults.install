@@ -1,0 +1,28 @@
+<?php
+
+use Drupal\taxonomy\Entity\Term;
+
+/**
+ * Implements hook_install
+ * Adds default taxonomy term to the Islandora Resource Type Vocabulary
+ */
+/**
+ * Implements hook_install().
+ */
+function carapace_defaults_install($is_syncing) {
+  // Machine name of the Taxonomy vocabulary.
+  $vocab = 'resource_types';
+
+  // We add the compound object taxonomy
+  $items = [
+    'Compound Object',
+  ];
+
+  foreach ($items as $item) {
+    $term = Term::create(array(
+      'parent' => array(),
+      'name' => $item,
+      'vid' => $vocab,
+    ))->save();
+  }
+}

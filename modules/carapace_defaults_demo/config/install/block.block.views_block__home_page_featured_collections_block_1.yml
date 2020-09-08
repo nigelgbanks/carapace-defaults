@@ -1,0 +1,29 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - views.view.home_page_featured_collections
+  module:
+    - system
+    - views
+  theme:
+    - carapace
+id: views_block__home_page_featured_collections_block_1
+theme: carapace
+region: sidebar_second
+weight: -13
+provider: null
+plugin: 'views_block:home_page_featured_collections-block_1'
+settings:
+  id: 'views_block:home_page_featured_collections-block_1'
+  label: 'Explore Our Digital Collections'
+  provider: views
+  label_display: '0'
+  views_label: 'Explore Our Digital Collections'
+  items_per_page: none
+visibility:
+  request_path:
+    id: request_path
+    pages: '<front>'
+    negate: false
+    context_mapping: {  }

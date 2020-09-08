@@ -1,0 +1,49 @@
+name: 'Islandora Carapace Defaults Demo'
+description: 'Settings to setup a demo based off carapace''s new features'
+type: module
+core: 8.x
+dependencies:
+  - addtoany
+  - block
+  - block_content
+  - comment
+  - context
+  - controlled_access_terms
+  - controlled_access_terms_defaults
+  - ds
+  - easy_breadcrumb
+  - eva
+  - facets
+  - field
+  - field_group
+  - field_permissions
+  - file_download_link
+  - fixed_block_content
+  - geolocation
+  - image
+  - islandora
+  - islandora_core_feature
+  - islandora_defaults
+  - islandora_fits
+  - islandora_search
+  - islandora_text_extraction_defaults
+  - jsonld
+  - language
+  - link
+  - media
+  - media_library
+  - node
+  - path
+  - responsive_image
+  - rest
+  - search_api
+  - serialization
+  - system
+  - taxonomy
+  - term_condition
+  - text
+  - title_field_for_manage_display
+  - user
+  - views
+version: 8.x-1.0
+package: Islandora

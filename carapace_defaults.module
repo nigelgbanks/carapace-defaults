@@ -1,0 +1,346 @@
+<?php
+
+use Drupal\Component\Utility\UrlHelper;
+use Drupal\Core\Entity\Display\EntityViewDisplayInterface;
+use Drupal\Core\Entity\EntityInterface;
+use Drupal\Core\Form\FormState;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
+use Drupal\views\ViewExecutable;
+use Drupal\views\Views;
+
+/**
+ * Implements hook_form_alter().
+ */
+function carapace_defaults_form_alter(&$form, \Drupal\Core\Form\FormStateInterface $form_state, $form_id) {
+  if ($form_id == 'views_exposed_form' && strstr($form['#id'], 'views-exposed-form-solr-search-content'))  {
+    // Remove un-wanted fields
+    unset($form['sort_by']);
+    unset($form['sort_order']);
+    unset($form['items_per_page']);
+  }
+}
+/**
+ * Implements hook_theme().
+ */
+function carapace_defaults_theme($existing, $type, $theme, $path) {
+  return [
+    'views_header' => [
+      'variables' => [
+        'pagination_options' => FALSE,
+        'links' => [],
+        'items_per_page' => [],
+        'pager' => FALSE,
+        'exposedFilters' => FALSE,
+      ],
+    ],
+    'homepage' => [
+      'variables' => [
+        'vars' => [],
+      ],
+    ],
+    'collection_ajax' => [],
+  ];
+}
+
+
+
+/**
+ * Implements hook_views_pre_view().
+ *
+ * @param \Drupal\views\ViewExecutable $view
+ * @param $display_id
+ * @param array $args
+ */
+/**
+ * Implements hook_views_pre_render().
+ *
+ * @param \Drupal\views\ViewExecutable $view
+ */
+function carapace_defaults_views_pre_render(ViewExecutable $view) {
+  if (!\Drupal::service('path.matcher')->isFrontPage()) {
+    $form_state = new FormState();
+    $form_state->setFormState([
+      'view' => $view,
+      'display' => $view->display_handler->display,
+      'exposed_form_plugin' => $view->display_handler->getPlugin('exposed_form'),
+      'method' => 'get',
+      'rerender' => TRUE,
+      'no_redirect' => TRUE,
+      'always_process' => TRUE,
+    ]);
+
+    if (in_array($view->id(), [
+      'members',
+      'solr_search_content',
+      'home_page_featured_collections',
+    ])) {
+      if (in_array($view->current_display, ['page_1', 'block_1'])) {
+        // Get pager for view
+        $pager = $view->renderPager($view->getExposedInput());
+        $items_per_page = [10, 25, 50];
+        $current_url_arguments = \Drupal::request()->query->all();
+        $page_urls = [];
+
+        foreach ($items_per_page as $item) {
+          //Determine if we should set the active tail on some of the options
+          $isActive = !(empty(\Drupal::request()->query->get('items_per_page'))) && (\Drupal::request()->query->get('items_per_page') == $item);
+          $current_url_arguments['items_per_page'] = $item;
+          //Set active class
+          if ($isActive) {
+            $page_urls[$item]['class'] = 'pagination_option_item__link—is-active';
+          }
+          $page_urls[$item]['value'] = \Drupal::urlGenerator()
+            ->generateFromRoute('<current>', [], [
+              'query' => $current_url_arguments,
+              'absolute' => TRUE,
+            ]);
+        }
+        // TODO replace this with the sort filter coming from the view
+        $defaultSelectedValue = (\Drupal::request()->query->get('sort_order') === 'ASC') ? 'relevance_up' : 'relevance_down';
+        if ($view->id() === 'solr_search_content' && $view->current_display !== 'block_1') {
+          $sort = [
+            '#type' => 'select',
+            '#title' => 'Sort Options',
+            '#wrapper_attributes' => [
+              'class' => [
+                'sort__container',
+              ],
+            ],
+            '#options' =>
+              [
+                'relevance_up' => t('Relevance ↑'),
+                'relevance_down' => t('Relevance ↓'),
+                'field_edtf_date_created_up' => 'Created ↑',
+                'field_edtf_date_created_down' => 'Created ↓',
+                'title_up' => 'Title ↑',
+                'title_down' => 'Title ↓',
+              ],
+            '#options_attributes' => [
+              'relevance_up' => [
+                'data-sort_by' => 'search_api_relevance',
+                'data-sort_order' => 'ASC',
+              ],
+              'relevance_down' => [
+                'data-sort_by' => 'search_api_relevance',
+                'data-sort_order' => 'DESC',
+              ],
+              'field_edtf_date_created_up' => [
+                'data-sort_by' => 'field_edtf_date_created',
+                'data-sort_order' => 'ASC',
+              ],
+              'field_edtf_date_created_down' => [
+                'data-sort_by' => 'field_edtf_date_created',
+                'data-sort_order' => 'DESC',
+              ],
+              'title_up' => [
+                'data-sort_by' => 'title',
+                'data-sort_order' => 'ASC',
+              ],
+              'title_down' => [
+                'data-sort_by' => 'title',
+                'data-sort_order' => 'DESC',
+              ],
+            ],
+            '#attributes' => [
+              'autocomplete' => 'off',
+            ],
+            '#name' => 'sort_order',
+            '#default_value' => $defaultSelectedValue,
+          ];
+        } else {
+          // We don't want sort on attached views (ie collections, compound objects..)
+          $sort = [];
+        }
+
+        // Hidden Search placeholder for form submit
+        $activeDisplay = '';
+        $urls = [
+          "list" => [
+            'value' => \Drupal::urlGenerator()
+              ->generateFromRoute('<current>', [], [
+                'query' => array_merge($current_url_arguments, ['display' => 'list']),
+                'absolute' => TRUE,
+              ]),
+            'class' => $activeDisplay,
+          ],
+          "grid" => [
+            'value' => \Drupal::urlGenerator()
+              ->generateFromRoute('<current>', [], [
+                'query' => array_merge($current_url_arguments, ['display' => 'grid']),
+                'absolute' => TRUE,
+              ]),
+            'class' => $activeDisplay,
+          ],
+        ];
+        $currentDisplay = \Drupal::request()->query->get('display');
+        if (in_array($currentDisplay, ['list', 'grid'])) {
+          $urls[strtolower($currentDisplay)]['class'] = "view-{$currentDisplay}__link--is-active";
+        }
+
+
+        /**
+         * Renderable array options
+         */
+        $theme = [
+          '#theme' => 'views_header',
+          '#attached' => [
+            'library' => [
+              'carapace_defaults/mystic_behaviors',
+            ],
+          ],
+          '#pagination_options' => $pager,
+          '#items_per_page' => $page_urls,
+          '#links' => $urls,
+          '#pager' => $pager,
+          '#exposedFilters' => $sort,
+        ];
+        // Attach result to view after the main query has been run
+        $view->attachment_before = $theme;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function carapace_defaults_preprocess_html(&$variables) {
+  /**  @var  Drupal\node\Entity\Node $node */
+  $node = \Drupal::routeMatch()->getParameter('node');
+  if ($node instanceof \Drupal\node\NodeInterface && $node->hasField('field_resource_type')) {
+    if (isset($node->get('field_resource_type')->entity)) {
+      $current_resource_type = $node->get('field_resource_type')->entity->getName();
+      switch ($current_resource_type) {
+        case "Compound Object":
+        default:
+          $variables['#attached']['library'][] = 'carapace_defaults/mystic_behaviors';
+          break;
+      }
+    }
+  }
+}
+
+/**
+ * Overrides theme to add additional classes for styling
+ *
+ * @param $variables
+ */
+function carapace_defaults_preprocess_views_view_unformatted(&$variables) {
+  // Default
+  $variables['additional_classes'] = 'view-list';
+  $currentDisplay = \Drupal::request()->query->get('display') ?? 'list';
+  $variables['additional_classes'] = "view-{$currentDisplay}";
+
+  // Get facets to make them available for theme files using twig tweak
+  $facetsource_id = ['views_block__solr_search_content__block_1', 'views_page__solr_search_content__page_1'];
+  /** @var Drupal\facets\FacetManager\DefaultFacetManager $resources */
+  $default_facets_namespace = 'search_api';
+  $variables['facets'] = [];
+  foreach($facetsource_id as $frid) {
+    $facets = \Drupal::service('facets.manager')->getFacetsByFacetSourceId("$default_facets_namespace:$frid");
+    if (!empty($facets)) {
+      $arr = [];
+      foreach ($facets as $facet) {
+        //Load facets into array and store it
+        /** @var \Drupal\facets\Entity\Facet $facet */
+        $variables['facets'][$frid][] = [
+          'id' => 'facet_block:' . $facet->id(),
+          'label' => $facet->getName()
+        ];
+      }
+    }
+  }
+}
+
+
+/**
+ * Implements hook_views_query_alter().
+ *
+ * @param \Drupal\views\ViewExecutable $view
+ * @param \Drupal\views\Plugin\views\query\Sql $query
+ */
+function carapace_defaults_views_query_alter(ViewExecutable $view, $query) {
+  if ($view->id() == 'members' && $view->current_display == 'embedded') {
+    // Add default ID from current object
+    $node = \Drupal::routeMatch()->getParameter('node');
+    if ($node instanceof \Drupal\node\NodeInterface) {
+      // You can get nid and anything else you need from the node object.
+      $nid = $node->id();
+      //$children =
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_extra_field_info
+ * Defines Permalink field
+ * @return array
+ */
+function carapace_defaults_entity_extra_field_info() {
+  $extra_field = [];
+  $extra_field['node']['islandora_object']['display']['permalink_uri'] = [
+    'label' => t('Permalink'),
+    'description' => t('The Permalink URI to the object'),
+    'weight' => 100,
+    'visible' => TRUE,
+  ];
+  $extra_field['node']['islandora_object']['display']['openseadragon'] = [
+    'label' => t('OpenseaDragon Block as a field'),
+    'description' => t('Passthrough for the OpenseaDragon block to behave as a field'),
+    'weight' => 100,
+    'visible' => TRUE,
+  ];
+
+
+  return $extra_field;
+}
+
+/**
+ * Implements hook_entity_view().
+ */
+function carapace_defaults_entity_view(array &$build, EntityInterface $entity, EntityViewDisplayInterface $display, $view_mode) {
+  $route_match_item = \Drupal::routeMatch()->getParameters()->get($entity->getEntityTypeId());
+  // Ensure the entity matches the route.
+  if ($entity === $route_match_item) {
+     if($display->getComponent('openseadragon')) {
+      // Load block instance and set the correct manifest for openseadragon, extra fields don't allow an interface to set parameters
+      // http://localhost/node/[node:nid]/manifest
+      $block = \Drupal::service('plugin.manager.block')->createInstance('openseadragon_block', [
+        'iiif_manifest_url' => \Drupal::request()->getSchemeAndHttpHost() . "/node/{$entity->id()}/manifest"
+      ]);
+      if (is_object($block)) {
+        $build['openseadragon'] =  $block->build()['openseadragon_block'];
+      }
+    }
+    if ($display->getComponent('permalink_uri')) {
+      $options = ['absolute' => TRUE];
+      $url_object = Drupal\Core\Url::fromRoute('entity.node.canonical', ['node' => $entity->id()], $options);
+      $build['permalink_uri'] = [
+        '#type' => 'container',
+        '#attributes' => [
+          'id' => 'field-permalink-uri',
+        ],
+        'internal_label' => [
+          '#type' => 'item',
+          '#title' => t('Permalink'),
+          'internal_uri' => [
+            '#type' => 'link',
+            '#title' => t("@url", ['@url' => $url_object->toString()]),
+            '#url' => $url_object
+          ],
+        ],
+      ];
+    }
+  }
+}
+
+/**
+ * Implements hook_preprocess_HOOK().
+ */
+function carapace_defaults_preprocess_node(&$variables) {
+  $node = \Drupal::routeMatch()->getParameter('node');
+  if ($node instanceof \Drupal\node\NodeInterface && $node->hasField('field_resource_type')) {
+
+  }
+}

@@ -1,0 +1,10 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - block_content.type.carapace_cb_footer_contact
+id: block_content.carapace_cb_footer_contact
+target_entity_type_id: block_content
+target_bundle: carapace_cb_footer_contact
+default_langcode: site_default
+language_alterable: false

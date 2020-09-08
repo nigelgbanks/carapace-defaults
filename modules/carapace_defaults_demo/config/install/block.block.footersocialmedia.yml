@@ -1,0 +1,22 @@
+langcode: en
+status: true
+dependencies:
+  config:
+    - fixed_block_content.fixed_block_content.carapace_fb_footer_social_media
+  module:
+    - fixed_block_content
+  theme:
+    - carapace
+id: footersocialmedia
+theme: carapace
+region: footer_second
+weight: 0
+provider: null
+plugin: 'fixed_block_content:carapace_fb_footer_social_media'
+settings:
+  id: 'fixed_block_content:carapace_fb_footer_social_media'
+  label: 'Footer: Social Media'
+  provider: fixed_block_content
+  label_display: '0'
+  view_mode: ''
+visibility: {  }
