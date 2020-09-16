@@ -27,7 +27,7 @@
     "drupal/conditional_fields": "^1.0@alpha",
     "drupal/config_ignore": "^2.2",
     "drupal/config_split": "^1.4",
-    "drupal/content_sync": "2.x-dev",
+    "drupal/content_sync": "2.1",
     "drupal/ds": "^3.8",
     "drupal/easy_breadcrumb": "^1.13",
     "drupal/eva": "^2.0",
