@@ -18,7 +18,7 @@
     }
   ],
   "require": {
-    "islandora/carapace": "dev-born-digital_fork",
+    "islandora/carapace": "*",
     "drupal/addtoany": "^1.9",
     "drupal/at_tools": "^3.2",
     "drupal/block_class": "^1.2",
@@ -40,7 +40,6 @@
     "drupal/views_conditional": "^1.0",
     "drupal/context_groups": "^1.0"
   },
-
   "require-dev": {
     "phpunit/phpunit": "^4.8",
     "squizlabs/php_codesniffer": "2.7.1",
