@@ -4,13 +4,11 @@ description: 'Carapace customizations'
 package: Custom
 core: 8.x
 dependencies:
- - block_class:block_class
- - twig_tweak:twig_tweak
- - at_tools:at_tools
  - addtoany:addtoany
- - term_condition:term_condition
- - content_sync:content_sync
- - config_ignore:config_ignore
+ - at_tools:at_tools
+ - block_class:block_class
  - ds:ds
  - file_download_link:file_download_link
  - fixed_block_content:fixed_block_content
+ - term_condition:term_condition
+ - twig_tweak:twig_tweak
